@@ -1,0 +1,650 @@
+/**
+ * WP Nextcloud Bridge — Frontend Styles
+ *
+ * Light theme only. Clean file-manager aesthetic.
+ * Google Font "DM Sans" loaded via @import for a crisp, modern feel.
+ *
+ * @package WPNC
+ */
+
+/* ── Font ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── CSS Variables ─────────────────────────────────────────── */
+:root {
+    --wpnc-font:        'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --wpnc-font-mono:   'JetBrains Mono', ui-monospace, monospace;
+    --wpnc-radius:      8px;
+    --wpnc-radius-sm:   5px;
+    --wpnc-shadow:      0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
+    --wpnc-shadow-lg:   0 4px 24px rgba(0,0,0,.12);
+    --wpnc-transition:  .18s ease;
+
+    /* Palette — Nextcloud blue accent */
+    --wpnc-bg:          #f7f8fa;
+    --wpnc-surface:     #ffffff;
+    --wpnc-border:      #e2e5ea;
+    --wpnc-border-hover:#c8cdd5;
+    --wpnc-text:        #1a1d21;
+    --wpnc-text-dim:    #636b75;
+    --wpnc-primary:     #0082c9;
+    --wpnc-primary-hover:#006ba1;
+    --wpnc-primary-light:rgba(0,130,201,.08);
+    --wpnc-danger:      #d93025;
+    --wpnc-danger-hover:#b8241c;
+    --wpnc-success:     #188038;
+    --wpnc-success-bg:  #e6f4ea;
+    --wpnc-warning:     #e37400;
+    --wpnc-warning-bg:  #fef7e0;
+    --wpnc-error-bg:    #fce8e6;
+    --wpnc-row-hover:   #f0f4f8;
+    --wpnc-folder-color:#e8a517;
+}
+
+/* ── Browser Container ─────────────────────────────────────── */
+.wpnc-browser {
+    position: relative;
+    font-family: var(--wpnc-font);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--wpnc-text);
+    background: var(--wpnc-surface);
+    border: 1px solid var(--wpnc-border);
+    border-radius: var(--wpnc-radius);
+    box-shadow: var(--wpnc-shadow);
+    overflow: hidden;
+    min-height: 200px;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+.wpnc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--wpnc-bg);
+    border-bottom: 1px solid var(--wpnc-border);
+    flex-wrap: wrap;
+}
+
+.wpnc-toolbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Breadcrumb ────────────────────────────────────────────── */
+.wpnc-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 32px;
+}
+
+.wpnc-crumb-link {
+    color: var(--wpnc-primary);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--wpnc-radius-sm);
+    transition: background var(--wpnc-transition), color var(--wpnc-transition);
+}
+
+.wpnc-crumb-link:hover {
+    background: var(--wpnc-primary-light);
+    color: var(--wpnc-primary-hover);
+}
+
+.wpnc-crumb-current {
+    color: var(--wpnc-text);
+    padding: 2px 6px;
+    font-weight: 600;
+}
+
+.wpnc-crumb-sep {
+    color: var(--wpnc-text-dim);
+    margin: 0 1px;
+    user-select: none;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.wpnc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-family: var(--wpnc-font);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    border: 1px solid var(--wpnc-border);
+    border-radius: var(--wpnc-radius-sm);
+    background: var(--wpnc-surface);
+    color: var(--wpnc-text);
+    cursor: pointer;
+    transition: all var(--wpnc-transition);
+    white-space: nowrap;
+}
+
+.wpnc-btn:hover {
+    border-color: var(--wpnc-border-hover);
+    background: var(--wpnc-bg);
+}
+
+.wpnc-btn-upload {
+    background: var(--wpnc-primary);
+    color: #fff;
+    border-color: var(--wpnc-primary);
+}
+
+.wpnc-btn-upload:hover {
+    background: var(--wpnc-primary-hover);
+    border-color: var(--wpnc-primary-hover);
+}
+
+.wpnc-btn-primary {
+    background: var(--wpnc-primary);
+    color: #fff;
+    border-color: var(--wpnc-primary);
+}
+
+.wpnc-btn-primary:hover {
+    background: var(--wpnc-primary-hover);
+    border-color: var(--wpnc-primary-hover);
+}
+
+.wpnc-btn-danger {
+    background: var(--wpnc-danger);
+    color: #fff;
+    border-color: var(--wpnc-danger);
+}
+
+.wpnc-btn-danger:hover {
+    background: var(--wpnc-danger-hover);
+    border-color: var(--wpnc-danger-hover);
+}
+
+.wpnc-btn-cancel {
+    background: var(--wpnc-surface);
+    color: var(--wpnc-text-dim);
+    border-color: var(--wpnc-border);
+}
+
+.wpnc-btn-cancel:hover {
+    background: var(--wpnc-bg);
+}
+
+.wpnc-btn-mkdir {
+    font-size: 13px;
+}
+
+.wpnc-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* ── File Table ────────────────────────────────────────────── */
+.wpnc-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.wpnc-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.wpnc-table th {
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--wpnc-text-dim);
+    background: var(--wpnc-bg);
+    border-bottom: 1px solid var(--wpnc-border);
+    text-align: left;
+    user-select: none;
+}
+
+.wpnc-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f1f3;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Column widths */
+.wpnc-col-icon    { width: 40px; text-align: center; }
+.wpnc-col-name    { /* flex-grow */ }
+.wpnc-col-size    { width: 90px; text-align: right; }
+.wpnc-col-date    { width: 160px; }
+.wpnc-col-actions { width: 110px; text-align: right; }
+
+/* Row hover */
+.wpnc-row {
+    transition: background var(--wpnc-transition);
+}
+
+.wpnc-row:hover {
+    background: var(--wpnc-row-hover);
+}
+
+.wpnc-row:last-child td {
+    border-bottom: none;
+}
+
+/* File icon */
+.wpnc-file-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+/* Folder link */
+.wpnc-folder-link {
+    color: var(--wpnc-text);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color var(--wpnc-transition);
+}
+
+.wpnc-folder-link:hover {
+    color: var(--wpnc-primary);
+}
+
+/* File name */
+.wpnc-file-name {
+    color: var(--wpnc-text);
+}
+
+/* Size & date */
+.wpnc-col-size,
+.wpnc-col-date {
+    color: var(--wpnc-text-dim);
+    font-size: 13px;
+    font-family: var(--wpnc-font-mono);
+}
+
+/* ── Action Buttons (per-row) ──────────────────────────────── */
+.wpnc-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    border-radius: var(--wpnc-radius-sm);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    transition: background var(--wpnc-transition);
+    padding: 0;
+}
+
+.wpnc-action-btn:hover {
+    background: var(--wpnc-primary-light);
+}
+
+.wpnc-action-delete:hover {
+    background: var(--wpnc-error-bg);
+}
+
+/* ── Loading / Empty / Error states ────────────────────────── */
+.wpnc-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 48px 16px;
+    color: var(--wpnc-text-dim);
+    font-size: 14px;
+}
+
+.wpnc-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--wpnc-border);
+    border-top-color: var(--wpnc-primary);
+    border-radius: 50%;
+    animation: wpnc-spin .6s linear infinite;
+}
+
+@keyframes wpnc-spin {
+    to { transform: rotate(360deg); }
+}
+
+.wpnc-empty {
+    padding: 48px 16px;
+    text-align: center;
+    color: var(--wpnc-text-dim);
+    font-size: 14px;
+}
+
+.wpnc-error {
+    padding: 16px;
+}
+
+.wpnc-error-text {
+    margin: 0;
+    padding: 12px 16px;
+    background: var(--wpnc-error-bg);
+    color: var(--wpnc-danger);
+    border-radius: var(--wpnc-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ── Drop Zone Overlay ─────────────────────────────────────── */
+.wpnc-dropzone-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 130, 201, .08);
+    border: 3px dashed var(--wpnc-primary);
+    border-radius: var(--wpnc-radius);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+
+.wpnc-dropzone-active .wpnc-dropzone-overlay,
+.wpnc-dropzone-overlay.wpnc-dropzone-active {
+    opacity: 1;
+}
+
+.wpnc-dropzone-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--wpnc-primary);
+    background: var(--wpnc-surface);
+    padding: 14px 28px;
+    border-radius: var(--wpnc-radius);
+    box-shadow: var(--wpnc-shadow-lg);
+}
+
+/* ── Upload Progress ───────────────────────────────────────── */
+.wpnc-upload-progress {
+    padding: 12px 16px;
+    background: var(--wpnc-bg);
+    border-bottom: 1px solid var(--wpnc-border);
+}
+
+.wpnc-upload-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 4px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eef0f2;
+    align-items: center;
+}
+
+.wpnc-upload-row:last-child {
+    border-bottom: none;
+}
+
+.wpnc-upload-name {
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    grid-column: 1 / -1;
+}
+
+.wpnc-upload-size {
+    font-weight: 400;
+    color: var(--wpnc-text-dim);
+    font-size: 13px;
+}
+
+.wpnc-progress-bar {
+    grid-column: 1;
+    height: 6px;
+    background: var(--wpnc-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.wpnc-progress-fill {
+    height: 100%;
+    background: var(--wpnc-primary);
+    border-radius: 3px;
+    transition: width .25s ease;
+}
+
+.wpnc-upload-status {
+    grid-column: 2;
+    font-size: 12px;
+    color: var(--wpnc-text-dim);
+    white-space: nowrap;
+    font-family: var(--wpnc-font-mono);
+}
+
+.wpnc-upload-done .wpnc-progress-fill {
+    background: var(--wpnc-success);
+}
+
+.wpnc-upload-done .wpnc-upload-status {
+    color: var(--wpnc-success);
+}
+
+.wpnc-upload-fail .wpnc-progress-fill {
+    background: var(--wpnc-danger);
+}
+
+.wpnc-upload-fail .wpnc-upload-status {
+    color: var(--wpnc-danger);
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+.wpnc-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, .35);
+    border-radius: var(--wpnc-radius);
+    animation: wpnc-fade-in .15s ease;
+}
+
+@keyframes wpnc-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.wpnc-modal {
+    width: 90%;
+    max-width: 380px;
+    background: var(--wpnc-surface);
+    border-radius: var(--wpnc-radius);
+    box-shadow: var(--wpnc-shadow-lg);
+    animation: wpnc-slide-up .2s ease;
+}
+
+@keyframes wpnc-slide-up {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.wpnc-modal-body {
+    padding: 24px;
+}
+
+.wpnc-modal-body p {
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--wpnc-text);
+}
+
+.wpnc-modal-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--wpnc-text);
+}
+
+.wpnc-input {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    font-family: var(--wpnc-font);
+    font-size: 16px;  /* >= 16px prevents iOS zoom */
+    line-height: 1.4;
+    border: 1px solid var(--wpnc-border);
+    border-radius: var(--wpnc-radius-sm);
+    background: var(--wpnc-surface);
+    color: var(--wpnc-text);
+    outline: none;
+    transition: border-color var(--wpnc-transition), box-shadow var(--wpnc-transition);
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+.wpnc-input:focus {
+    border-color: var(--wpnc-primary);
+    box-shadow: 0 0 0 3px var(--wpnc-primary-light);
+}
+
+.wpnc-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.wpnc-text-error {
+    color: var(--wpnc-danger) !important;
+}
+
+/* ── Toast Notification ────────────────────────────────────── */
+.wpnc-toast {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    z-index: 200;
+    padding: 10px 20px;
+    font-family: var(--wpnc-font);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--wpnc-radius);
+    box-shadow: var(--wpnc-shadow-lg);
+    opacity: 0;
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wpnc-toast-show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.wpnc-toast-success {
+    background: var(--wpnc-success-bg);
+    color: var(--wpnc-success);
+    border: 1px solid #b7e1cd;
+}
+
+.wpnc-toast-error {
+    background: var(--wpnc-error-bg);
+    color: var(--wpnc-danger);
+    border: 1px solid #f5c6cb;
+}
+
+.wpnc-toast-info {
+    background: var(--wpnc-surface);
+    color: var(--wpnc-text);
+    border: 1px solid var(--wpnc-border);
+}
+
+/* ── No access message ─────────────────────────────────────── */
+.wpnc-noaccess {
+    padding: 24px;
+    text-align: center;
+    color: var(--wpnc-text-dim);
+    font-style: italic;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .wpnc-toolbar {
+        padding: 10px 12px;
+    }
+
+    .wpnc-col-date {
+        display: none;
+    }
+
+    .wpnc-col-size {
+        width: 70px;
+        font-size: 12px;
+    }
+
+    .wpnc-col-actions {
+        width: 80px;
+    }
+
+    .wpnc-table th,
+    .wpnc-table td {
+        padding: 8px;
+    }
+
+    .wpnc-breadcrumb {
+        font-size: 13px;
+    }
+
+    .wpnc-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .wpnc-dropzone-text {
+        font-size: 15px;
+        padding: 10px 20px;
+    }
+
+    .wpnc-upload-row {
+        grid-template-columns: 1fr;
+    }
+
+    .wpnc-upload-status {
+        grid-column: 1;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 420px) {
+    .wpnc-col-size {
+        display: none;
+    }
+
+    .wpnc-col-actions {
+        width: 60px;
+    }
+
+    .wpnc-action-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+    }
+}

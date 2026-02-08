@@ -1,0 +1,160 @@
+/**
+ * WP Nextcloud Bridge — Admin Styles
+ *
+ * Minimal, leveraging WP admin's existing styles as much as possible.
+ * Only adds what's genuinely needed for the file browser and sync log.
+ */
+
+/* ── File Browser ──────────────────────────────────────────── */
+
+.wpnc-browser {
+    margin-top: 12px;
+    max-width: 900px;
+}
+
+.wpnc-breadcrumb {
+    padding: 8px 12px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.wpnc-breadcrumb a {
+    text-decoration: none;
+    color: #2271b1;
+    font-weight: 500;
+}
+
+.wpnc-breadcrumb a:hover {
+    color: #135e96;
+    text-decoration: underline;
+}
+
+.wpnc-crumb-sep {
+    color: #999;
+    margin: 0 2px;
+}
+
+.wpnc-items-table {
+    margin-top: 0;
+}
+
+.wpnc-items-table th,
+.wpnc-items-table td {
+    padding: 6px 10px;
+    vertical-align: middle;
+}
+
+.wpnc-items-table td:nth-child(3) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.wpnc-items-table td:nth-child(4) {
+    white-space: nowrap;
+}
+
+.wpnc-folder-link {
+    text-decoration: none;
+    color: #1d2327;
+    font-weight: 500;
+}
+
+.wpnc-folder-link:hover {
+    color: #2271b1;
+}
+
+.wpnc-empty {
+    padding: 24px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+.wpnc-browser-status {
+    padding: 8px 12px;
+    color: #666;
+    font-size: 13px;
+}
+
+/* ── Sync Log ──────────────────────────────────────────────── */
+
+.wpnc-log-line {
+    padding: 2px 0;
+    line-height: 1.5;
+    border-bottom: 1px solid #f0f0f1;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.wpnc-log-line:last-child {
+    border-bottom: none;
+}
+
+.wpnc-log-error {
+    color: #d63638;
+}
+
+.wpnc-log-warn {
+    color: #dba617;
+}
+
+.wpnc-log-upload {
+    color: #00a32a;
+}
+
+.wpnc-log-create {
+    color: #2271b1;
+}
+
+/* ── Sync Directory Pairs Table ────────────────────────────── */
+
+.wpnc-sync-table {
+    background: #fff;
+}
+
+.wpnc-sync-table th {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.wpnc-sync-table input.regular-text {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wpnc-remove-row {
+    color: #d63638 !important;
+    border-color: #d63638 !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    padding: 2px 8px !important;
+}
+
+.wpnc-remove-row:hover {
+    background: #d63638 !important;
+    color: #fff !important;
+}
+
+/* ── Share Button States ───────────────────────────────────── */
+
+.wpnc-share-btn {
+    min-width: 80px;
+    text-align: center;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media screen and (max-width: 782px) {
+    .wpnc-items-table th:nth-child(2),
+    .wpnc-items-table td:nth-child(2) {
+        display: none; /* Hide "Type" column on small screens */
+    }
+
+    .wpnc-sync-table {
+        font-size: 12px;
+    }
+}
