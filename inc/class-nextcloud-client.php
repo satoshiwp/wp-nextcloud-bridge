@@ -420,6 +420,250 @@ class Nextcloud_Client {
         return true;
     }
 
+    /**
+     * Upload a file directly from a URL to Nextcloud (no temp file).
+     *
+     * Downloads the entire source via a single cURL GET and uses
+     * CURLOPT_WRITEFUNCTION to buffer data in CHUNK_SIZE pieces.
+     * When a chunk is full it is immediately PUT to Nextcloud.
+     *
+     * - Small files (≤ CHUNK_SIZE): simple PUT.
+     * - Large files: NC chunked upload (MKCOL → PUT chunks → MOVE).
+     * - Does NOT require allow_url_fopen.
+     * - Does NOT require HTTP Range support on the source server.
+     * - Peak memory ≈ CHUNK_SIZE (10 MB).
+     *
+     * @param string $source_url   HTTP(S) URL of the source file.
+     * @param string $remote_path  Destination path relative to user root.
+     * @return true|\WP_Error
+     */
+    public function upload_from_url( string $source_url, string $remote_path ) {
+
+        error_log( '[WPNC] upload_from_url: ' . $source_url . ' → ' . $remote_path );
+
+        /*
+         * State shared between the cURL write-callback and this method.
+         * The callback buffers incoming data; when buffer ≥ CHUNK_SIZE
+         * it flushes a chunk to Nextcloud.
+         */
+        $state = (object) array(
+            'buffer'    => '',
+            'offset'    => 0,       // total bytes flushed to NC so far
+            'chunk_num' => 0,
+            'chunk_dir' => '',      // set after MKCOL (large file path)
+            'uuid'      => '',
+            'is_large'  => false,   // flipped to true once we exceed one chunk
+            'error'     => null,    // WP_Error if a NC upload fails inside the callback
+            'client'    => $this,
+        );
+
+        // ── cURL: stream source URL ─────────────────────────────
+        $ch = curl_init();
+        curl_setopt_array( $ch, array(
+            CURLOPT_URL            => $source_url,
+            CURLOPT_RETURNTRANSFER => false,  // we handle data in WRITEFUNCTION
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 5,
+            CURLOPT_TIMEOUT        => 0,      // no timeout — large files take time
+            CURLOPT_CONNECTTIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_BUFFERSIZE     => 131072,  // 128 KB internal cURL buffer
+        ) );
+
+        $chunk_size = self::CHUNK_SIZE;
+
+        curl_setopt( $ch, CURLOPT_WRITEFUNCTION,
+            function ( $ch, $data ) use ( $state, $chunk_size ) {
+                // Abort if a previous NC upload already failed.
+                if ( $state->error !== null ) {
+                    return -1;  // tell cURL to stop
+                }
+
+                $state->buffer .= $data;
+
+                // Flush full chunks.
+                while ( strlen( $state->buffer ) >= $chunk_size ) {
+                    $chunk = substr( $state->buffer, 0, $chunk_size );
+                    $state->buffer = substr( $state->buffer, $chunk_size );
+
+                    $result = $state->client->_flush_chunk( $state, $chunk );
+                    if ( is_wp_error( $result ) ) {
+                        $state->error = $result;
+                        return -1;
+                    }
+                }
+
+                return strlen( $data );
+            }
+        );
+
+        // Capture HTTP status code via HEADERFUNCTION.
+        $http_code = 0;
+        curl_setopt( $ch, CURLOPT_HEADERFUNCTION, function ( $ch, $header ) use ( &$http_code ) {
+            if ( preg_match( '/^HTTP\/[\d.]+ (\d{3})/', $header, $m ) ) {
+                $http_code = (int) $m[1];
+            }
+            return strlen( $header );
+        } );
+
+        curl_exec( $ch );
+        $curl_errno = curl_errno( $ch );
+        $curl_err   = curl_error( $ch );
+        curl_close( $ch );
+
+        // ── Post-download checks ────────────────────────────────
+        if ( $state->error !== null ) {
+            // NC upload failed during streaming — clean up chunk dir if applicable.
+            if ( $state->chunk_dir ) {
+                $this->request( 'DELETE', $state->chunk_dir );
+            }
+            return $state->error;
+        }
+
+        if ( $curl_errno !== 0 ) {
+            if ( $state->chunk_dir ) {
+                $this->request( 'DELETE', $state->chunk_dir );
+            }
+            return new \WP_Error(
+                'wpnc_curl_failed',
+                sprintf( __( 'cURL error %d: %s (source: %s)', 'wp-nc-bridge' ), $curl_errno, $curl_err, $source_url )
+            );
+        }
+
+        if ( $http_code !== 200 ) {
+            return new \WP_Error(
+                'wpnc_url_http_error',
+                sprintf( __( 'Source URL returned HTTP %d.', 'wp-nc-bridge' ), $http_code )
+            );
+        }
+
+        $total_received = $state->offset + strlen( $state->buffer );
+        error_log( '[WPNC] Download complete. Total received: ' . $total_received . ' bytes, flushed: ' . $state->offset . ', remaining buffer: ' . strlen( $state->buffer ) );
+
+        if ( $total_received === 0 ) {
+            return new \WP_Error( 'wpnc_url_empty', __( 'Source URL returned no data.', 'wp-nc-bridge' ) );
+        }
+
+        // ── Flush remaining buffer ──────────────────────────────
+        if ( strlen( $state->buffer ) > 0 ) {
+            // If no chunks were flushed yet → small file, simple PUT.
+            if ( ! $state->is_large ) {
+                error_log( '[WPNC] Small file (' . strlen( $state->buffer ) . ' bytes), simple PUT.' );
+                $url = $this->dav_url . $this->encode_path( $remote_path );
+
+                $response = $this->request( 'PUT', $url, array(
+                    'headers' => array( 'Content-Type' => 'application/octet-stream' ),
+                    'body'    => $state->buffer,
+                    'timeout' => max( $this->timeout, 120 ),
+                ) );
+
+                if ( is_wp_error( $response ) ) {
+                    return $response;
+                }
+
+                $code = wp_remote_retrieve_response_code( $response );
+                error_log( '[WPNC] Simple PUT response: HTTP ' . $code );
+                if ( $code !== 201 && $code !== 204 ) {
+                    return new \WP_Error( 'wpnc_put_failed', sprintf( __( 'PUT returned HTTP %d.', 'wp-nc-bridge' ), $code ) );
+                }
+
+                return true;
+            }
+
+            // Large file: flush the tail as the last chunk.
+            $result = $this->_flush_chunk( $state, $state->buffer );
+            $state->buffer = '';
+            if ( is_wp_error( $result ) ) {
+                $this->request( 'DELETE', $state->chunk_dir );
+                return $result;
+            }
+        }
+
+        // ── Large file: MOVE to assemble ────────────────────────
+        if ( $state->is_large ) {
+            error_log( '[WPNC] All chunks uploaded (' . $state->chunk_num . ' chunks, ' . $state->offset . ' bytes). Assembling…' );
+            $dest_url = $this->dav_url . $this->encode_path( $remote_path );
+
+            $resp = $this->request( 'MOVE', $state->chunk_dir . '/.file', array(
+                'headers' => array( 'Destination' => $dest_url ),
+                'timeout' => max( $this->timeout, 300 ),
+            ) );
+
+            if ( is_wp_error( $resp ) ) {
+                return $resp;
+            }
+
+            $code = wp_remote_retrieve_response_code( $resp );
+            error_log( '[WPNC] MOVE response: HTTP ' . $code );
+            if ( $code !== 201 && $code !== 204 ) {
+                return new \WP_Error( 'wpnc_chunk_move_failed', sprintf( __( 'Chunk assembly MOVE returned HTTP %d.', 'wp-nc-bridge' ), $code ) );
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Flush a single chunk to Nextcloud (called from upload_from_url).
+     *
+     * On first invocation, creates the chunk directory (MKCOL).
+     * Each chunk is PUT to the NC chunked upload directory.
+     *
+     * @internal  Public only so the cURL closure can call it via $state->client.
+     *
+     * @param object $state  Shared state object from upload_from_url.
+     * @param string $chunk  Raw chunk data.
+     * @return true|\WP_Error
+     */
+    public function _flush_chunk( object $state, string $chunk ) {
+
+        // First chunk: create the chunk directory.
+        if ( ! $state->is_large ) {
+            $state->is_large = true;
+            $state->uuid     = wp_generate_uuid4();
+            $state->chunk_dir = $this->upload_url . $state->uuid;
+
+            error_log( '[WPNC] Large file detected, creating chunk dir: ' . $state->chunk_dir );
+
+            $response = $this->request( 'MKCOL', $state->chunk_dir );
+            if ( is_wp_error( $response ) ) {
+                return $response;
+            }
+            $code = wp_remote_retrieve_response_code( $response );
+            if ( $code !== 201 && $code !== 405 ) {
+                return new \WP_Error( 'wpnc_chunk_mkcol_failed', sprintf( __( 'Chunk MKCOL returned HTTP %d.', 'wp-nc-bridge' ), $code ) );
+            }
+        }
+
+        $end       = $state->offset + strlen( $chunk );
+        $chunk_url = $state->chunk_dir . '/'
+                   . str_pad( $state->offset, 15, '0', STR_PAD_LEFT ) . '-'
+                   . str_pad( $end, 15, '0', STR_PAD_LEFT );
+
+        error_log( '[WPNC] Chunk #' . $state->chunk_num . ': offset=' . $state->offset . ' size=' . strlen( $chunk ) );
+
+        $resp = $this->request( 'PUT', $chunk_url, array(
+            'headers' => array( 'Content-Type' => 'application/octet-stream' ),
+            'body'    => $chunk,
+            'timeout' => max( $this->timeout, 300 ),
+        ) );
+
+        if ( is_wp_error( $resp ) ) {
+            return $resp;
+        }
+
+        $code = wp_remote_retrieve_response_code( $resp );
+        if ( $code !== 201 && $code !== 204 ) {
+            return new \WP_Error( 'wpnc_chunk_put_failed', sprintf( __( 'Chunk PUT returned HTTP %d at offset %d.', 'wp-nc-bridge' ), $code, $state->offset ) );
+        }
+
+        $state->offset = $end;
+        $state->chunk_num++;
+
+        return true;
+    }
+
     /* ================================================================
      *  FILE DOWNLOAD
      * ============================================================= */
